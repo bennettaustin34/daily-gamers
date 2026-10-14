@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DAILY GAMERS // HIGH SCORES</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--g:#39ff14;--p:#ff2bd6;--c:#00f0ff;--y:#ffe600;--bg:#07010f}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at center,#1a0633 0%,var(--bg) 75%);color:var(--c);font-family:'Press Start 2P',monospace;font-size:11px;line-height:1.7;min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px)}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:51;box-shadow:inset 0 0 120px rgba(0,0,0,.85);animation:flick 4s infinite}
+@keyframes flick{0%,100%{opacity:1}50%{opacity:.93}}
+.wrap{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+h1{font-size:clamp(18px,5vw,34px);text-align:center;color:var(--y);text-shadow:0 0 6px var(--y),3px 3px 0 var(--p);margin:10px 0 4px;letter-spacing:2px}
+.sub{text-align:center;color:var(--p);text-shadow:0 0 6px var(--p)}
+.coin{text-align:center;color:var(--g);text-shadow:0 0 8px var(--g);margin:14px 0;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.bar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+button{font:inherit;font-size:9px;background:transparent;color:var(--c);border:2px solid var(--c);padding:7px 10px;cursor:pointer;box-shadow:0 0 6px var(--c)}
+button:hover{background:var(--c);color:var(--bg)}
+.demo{background:var(--y);color:#000;text-align:center;padding:8px;margin-bottom:12px;border:3px dashed #000}
+section{border:3px solid var(--p);box-shadow:0 0 12px var(--p),inset 0 0 12px rgba(255,43,214,.3);padding:14px;margin:16px 0;background:rgba(10,0,25,.7)}
+h2{color:var(--p);font-size:13px;margin:0 0 12px;text-shadow:0 0 6px var(--p)}
+table{width:100%;border-collapse:collapse}
+th{color:var(--y);text-align:left;font-weight:normal;padding:6px 4px;font-size:9px}
+td{padding:7px 4px;color:#fff}
+tr.r1 td{color:var(--y);text-shadow:0 0 6px var(--y)} tr.r2 td{color:var(--c)} tr.r3 td{color:var(--p)}
+td.n,th.n{text-align:right}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px} .two section{margin:0}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{border:3px solid var(--c);padding:12px;text-align:center;cursor:pointer;transition:transform .1s;background:rgba(0,240,255,.05)}
+.card:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 0 16px var(--c)}
+.card.pop{animation:pop .4s}@keyframes pop{50%{transform:scale(1.12) rotate(-3deg)}}
+.sprite{font-size:28px;margin-bottom:6px}
+.card .h{color:var(--y);font-size:10px;min-height:2.4em}
+.card .big{font-size:20px;color:var(--g);text-shadow:0 0 8px var(--g);margin:6px 0}
+.card .s{font-size:8px;color:#aaa}
+.meter{height:8px;border:2px solid var(--g);margin-top:8px}.meter i{display:block;height:100%;background:var(--g)}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.game{border:2px solid var(--y);padding:10px}.game b{color:var(--y);font-weight:normal;display:block;margin-bottom:6px}
+.game .w{color:var(--g)} .game .x{color:#aaa;font-size:8px}
+.empty{text-align:center;padding:24px 8px;color:var(--c)}
+.empty .ghost{font-size:40px;animation:bob 1.2s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-8px)}}
+.foot{text-align:center;color:#888;font-size:8px;margin-top:20px}
+.err{color:var(--p)}
+@media(max-width:700px){.two{grid-template-columns:1fr}.cards{grid-template-columns:1fr 1fr}body{font-size:9px}}
+</style></head><body><div class="wrap">
+<h1>DAILY GAMERS</h1>
+<div class="sub">JIM LEYLAND FAN CLUB ARCADE</div>
+<div class="coin">INSERT COIN</div>
+<div class="bar"><button id="snd">SOUND: OFF</button><button id="ref">REFRESH</button></div>
+<div id="demo"></div>
+<div id="app"><div class="empty">LOADING...</div></div>
+<div class="foot" id="foot"></div>
+</div>
+<script>
+const SHEET_ID="1I_Gw1fY3iQJ03zknAshlz5_lNxKQWOY-1Ds2SHQJ888";
+const PLAYERS=[["AB","Austin","👾"],["Baby Giraffe","Parker","🦒"],["Smitt","Ryan","🕹️"],["Cunky","Chris","🍄"]];
+const GAMES=[["MapTap",1000],["Krillion",700],["TimeGuessr",50000],["Size It Up",500],["Daily Tens",10]];
+const P=new URLSearchParams(location.search), DEMO=P.has("demo");
+let sound=false, actx;
+function beep(f=660,d=.08){if(!sound)return;actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type="square";o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d)}
+snd.onclick=()=>{sound=!sound;snd.textContent="SOUND: "+(sound?"ON":"OFF");beep(880,.12)};
+ref.onclick=()=>{beep(440);load()};
+function csv(t){const r=[];let row=[],f="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==","){row.push(f);f=""}else if(c=="\n"){row.push(f);r.push(row);row=[];f=""}else if(c!="\r")f+=c}if(f||row.length){row.push(f);r.push(row)}return r}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function normDate(s){s=String(s).trim();if(!s)return"";let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return`${m[1]}-${m[2].padStart(2,0)}-${m[3].padStart(2,0)}`;m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return`${m[3]}-${m[1].padStart(2,0)}-${m[2].padStart(2,0)}`;return s}
+function demoRows(){const d="2026-10-14",y="2026-10-13",R=[];const add=(dt,h,g,s)=>R.push({date:dt,h,g,s});
+[[d,"AB","MapTap",912],[d,"Baby Giraffe","MapTap",870],[d,"Smitt","MapTap",955],[d,"Cunky","MapTap",640],[d,"AB","Krillion",610],[d,"Smitt","Krillion",590],[d,"Cunky","Krillion",655],[d,"AB","TimeGuessr",38200],[d,"Baby Giraffe","TimeGuessr",41150],[d,"Smitt","TimeGuessr",29800],[d,"AB","Size It Up",450],[d,"Cunky","Size It Up",470],[d,"AB","Daily Tens",8],[d,"Baby Giraffe","Daily Tens",7],[y,"AB","MapTap",800],[y,"Smitt","MapTap",990],[y,"Cunky","Krillion",700],[y,"Baby Giraffe","Daily Tens",9]].forEach(a=>add(...a));return R}
+async function fetchRows(){const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent("Daily Log")}&headers=1&range=A:E&t=${Date.now()}`;const r=await fetch(u);if(!r.ok)throw Error("HTTP "+r.status);const t=await r.text();if(/^\s*</.test(t))throw Error("Sheet is not shared publicly yet");const rows=csv(t).slice(1);return rows.map(c=>({date:normDate(c[0]),h:(c[1]||"").trim(),g:(c[3]||"").trim(),s:parseFloat(String(c[4]).replace(/,/g,""))})).filter(r=>r.date&&r.h&&r.g&&!isNaN(r.s))}
+function compute(rows){const max=Object.fromEntries(GAMES),handles=PLAYERS.map(p=>p[0]);const seen=new Set(),valid=[];
+for(const r of rows){if(!handles.includes(r.h)||!(r.g in max))continue;const k=r.date+"|"+r.h+"|"+r.g;if(seen.has(k))continue;seen.add(k);valid.push({...r,pct:r.s/max[r.g]})}
+const top={};valid.forEach(r=>{const k=r.date+"|"+r.g;top[k]=Math.max(top[k]??-Infinity,r.s)});valid.forEach(r=>r.win=r.s===top[r.date+"|"+r.g]?1:0);
+const latest=valid.map(r=>r.date).sort().pop()||"";
+const stand=f=>PLAYERS.map(([h,n,e])=>{const v=valid.filter(r=>r.h===h&&f(r));return{h,n,e,w:v.reduce((a,r)=>a+r.win,0),p:v.length?v.reduce((a,r)=>a+r.pct,0)/v.length:0,gp:v.length}}).sort((a,b)=>b.w-a.w||b.p-a.p);
+return{valid,latest,today:stand(r=>r.date===latest),all:stand(()=>true),games:GAMES.map(([g])=>{const v=valid.filter(r=>r.date===latest&&r.g===g);const t=Math.max(...v.map(r=>r.s));return{g,winners:v.filter(r=>r.s===t).map(r=>r.h),top:v.length?t:null,n:v.length,max:max[g]}})}}
+const pct=x=>(x*100).toFixed(1)+"%";
+function table(list,all){return`<table><tr><th>RNK</th><th>NAME</th><th class="n">WINS</th><th class="n">AVG%</th>${all?'<th class="n">GP</th>':""}</tr>${list.map((s,i)=>`<tr class="r${i+1}"><td>${["1ST","2ND","3RD","4TH"][i]||i+1+"TH"}</td><td>${esc(s.h)}</td><td class="n">${s.w}</td><td class="n">${pct(s.p)}</td>${all?`<td class="n">${s.gp}</td>`:""}</tr>`).join("")}</table>`}
+function render(d,note){
+if(!d.valid.length){app.innerHTML=`<section><div class="empty"><div class="ghost">👻</div><p>NO SCORES YET</p><p style="color:var(--y)">PLAYER 1... PLAYER 2... PLAYER 3... PLAYER 4...</p><p style="color:#aaa;font-size:8px">POST YOUR DAILY SCORES IN THE CHAT TO JOIN THE HIGH SCORE TABLE</p>${note?`<p class="err" style="font-size:8px">${esc(note)}</p>`:""}</div></section>`+cards(d.all);bind();return}
+app.innerHTML=`<div class="two"><section><h2>HIGH SCORES · ${esc(d.latest)}</h2>${table(d.today)}</section><section><h2>ALL-TIME HIGH SCORES</h2>${table(d.all,1)}</section></div>`+cards(d.all)+
+`<section><h2>TODAY'S GAMES</h2><div class="games">${d.games.map(g=>`<div class="game"><b>${esc(g.g)}</b>${g.n?`<div class="w">🏆 ${g.winners.map(esc).join(" + ")}</div><div class="x">${g.top.toLocaleString()} / ${g.max.toLocaleString()} · ${g.n} PLAYED</div>`:`<div class="x">NO PLAYS YET</div>`}</div>`).join("")}</div></section>`;bind()}
+function cards(all){return`<section><h2>SELECT YOUR PLAYER</h2><div class="cards">${all.map(s=>`<div class="card"><div class="sprite">${s.e}</div><div class="h">${esc(s.h)}</div><div class="s">${esc(s.n.toUpperCase())}</div><div class="big">${s.w}</div><div class="s">WINS · AVG ${pct(s.p)}</div><div class="meter"><i style="width:${Math.min(100,s.p*100)}%"></i></div></div>`).join("")}</div></section>`}
+function bind(){document.querySelectorAll(".card").forEach((c,i)=>{c.onmouseenter=()=>beep(500+i*120,.05);c.onclick=()=>{c.classList.remove("pop");void c.offsetWidth;c.classList.add("pop");[523,659,784].forEach((f,j)=>setTimeout(()=>beep(f,.07),j*80))}})}
+async function load(){let rows=[],note="";
+if(DEMO){rows=demoRows();document.getElementById("demo").innerHTML='<div class="demo">⚠ EXAMPLE DATA ONLY: NOT REAL SCORES ⚠</div>'}
+else{try{rows=await fetchRows()}catch(e){note="CAN'T REACH SCOREBOARD: "+e.message}}
+render(compute(rows),note);foot.textContent=(DEMO?"DEMO MODE":"LIVE FROM GOOGLE SHEETS")+" · UPDATED "+new Date().toLocaleTimeString()+" · AUTO-REFRESH 60s"}
+load();if(!DEMO)setInterval(load,60000);
+</script></body></html>
